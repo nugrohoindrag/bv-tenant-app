@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+.env
+*.local
+.DS_Store
+*.tsbuildinfo
+# catatan internal & artefak lokal
+PROGRESS.md
+docs/backend-contract.md
+*.log
+scratchpad

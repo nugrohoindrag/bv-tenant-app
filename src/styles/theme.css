@@ -1,0 +1,109 @@
+/* Tenant App theme: Tailwind v4 CSS-first + token BuildingVision (Design System v1.0 §2) + aksen Figma tenant
+   (font Nunito, gradient teal tombol/header, kartu radius besar). */
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme {
+  --color-brand-50: var(--bv-brand-50);
+  --color-brand-100: var(--bv-brand-100);
+  --color-brand-500: var(--bv-brand-500);
+  --color-brand-600: var(--bv-brand-600);
+  --color-brand-700: var(--bv-brand-700);
+  --color-brand-900: var(--bv-brand-900);
+
+  --color-success: var(--bv-success-600);
+  --color-success-soft: var(--bv-success-100);
+  --color-success-text: var(--bv-success-700);
+  --color-warning: var(--bv-warning-600);
+  --color-warning-soft: var(--bv-warning-100);
+  --color-warning-text: var(--bv-warning-700);
+  --color-critical: var(--bv-critical-600);
+  --color-critical-soft: var(--bv-critical-100);
+  --color-critical-text: var(--bv-critical-700);
+  --color-info: var(--bv-info-600);
+  --color-info-soft: var(--bv-info-100);
+  --color-info-text: var(--bv-info-700);
+  --color-neutral: var(--bv-neutral-500);
+  --color-neutral-soft: var(--bv-neutral-100);
+  --color-neutral-text: var(--bv-neutral-700);
+  --color-neutral-200: var(--bv-neutral-200);
+  --color-neutral-300: var(--bv-neutral-300);
+  --color-neutral-400: var(--bv-neutral-400);
+  --color-neutral-800: var(--bv-neutral-800);
+
+  --color-background: var(--bv-surface-background);
+  --color-card: var(--bv-surface-card);
+  --color-foreground: var(--bv-surface-foreground);
+  --color-muted: var(--bv-neutral-100);
+  --color-muted-foreground: var(--bv-neutral-500);
+  --color-border: var(--bv-neutral-200);
+  --color-primary: var(--bv-brand-600);
+  --color-primary-foreground: #ffffff;
+  --color-ring: var(--bv-brand-500);
+
+  /* aksen Figma tenant (menu bulat) */
+  --color-accent-purple: #8b2fe0;
+  --color-accent-pink: #ef1a5f;
+  --color-accent-sky: #1fb6f0;
+  --color-accent-amber: #f5b335;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --font-sans: "Nunito", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: 0 2px 10px rgb(16 24 40 / 0.06);
+  --shadow-float: 0 8px 24px rgb(16 24 40 / 0.1);
+  --shadow-modal: 0 24px 48px rgb(0 0 0 / 0.16);
+}
+
+:root {
+  --bv-gradient: linear-gradient(90deg, #5fd3c6 0%, #1f9bb3 100%);
+  --bv-gradient-v: linear-gradient(180deg, #5fd3c6 0%, #1f9bb3 100%);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+
+/* Reset dasar HARUS di @layer base: CSS tanpa layer mengalahkan utility Tailwind (mis. button { color: inherit } akan
+   menimpa .text-white pada tombol gradient). */
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bv-surface-background);
+    color: var(--bv-surface-foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  img { max-width: 100%; display: block; }
+}
+
+@layer utilities {
+  .bg-gradient-brand { background: var(--bv-gradient); }
+  .bg-gradient-brand-v { background: var(--bv-gradient-v); }
+  .text-gradient-brand { background: var(--bv-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .pt-safe { padding-top: var(--safe-top); }
+  .pb-safe { padding-bottom: var(--safe-bottom); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .tap { transition: transform 120ms ease, opacity 120ms ease; }
+  .tap:active { transform: scale(0.98); opacity: 0.9; }
+}
+
+/* halaman: lebar maks 480px di layar besar agar tetap terasa aplikasi mobile */
+.app-shell { max-width: 480px; margin: 0 auto; min-height: 100%; background: var(--bv-surface-background); position: relative; }
+@media (min-width: 520px) { .app-shell { box-shadow: 0 0 0 1px var(--bv-neutral-200), 0 12px 40px rgb(16 24 40 / 0.08); } }
+
+@keyframes bv-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: bv-fade-up 220ms ease-out both; }
+@keyframes bv-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.sheet-up { animation: bv-sheet-up 240ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes bv-pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+.skeleton { background: var(--bv-neutral-200); border-radius: 8px; animation: bv-pulse 1.4s ease-in-out infinite; }
