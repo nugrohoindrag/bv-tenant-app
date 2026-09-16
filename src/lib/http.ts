@@ -2,6 +2,9 @@
 // error RFC 9457 problem+json, Idempotency-Key untuk POST create. Mengikuti buildingvision/web/src/lib/api.ts.
 import { loadJSON, removeKey, saveJSON } from "./storage";
 
+/** Base URL API absolut (VITE_API_BASE) — wajib di native Capacitor; kosong = relatif (/api → proxy/reverse-proxy). */
+export const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+
 export interface Problem {
   type: string;
   title: string;
@@ -82,7 +85,7 @@ async function refreshToken(): Promise<boolean> {
     refreshing = (async () => {
       try {
         const cur = tokenStore.get();
-        const res = await fetch("/api/v1/auth/refresh", {
+        const res = await fetch(API_BASE + "/api/v1/auth/refresh", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -129,7 +132,7 @@ export function buildQuery(q?: RequestOptions["query"]): string {
 }
 
 export async function http<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const url = (path.startsWith("/") ? path : "/api/v1/" + path) + buildQuery(opts.query);
+  const url = API_BASE + (path.startsWith("/") ? path : "/api/v1/" + path) + buildQuery(opts.query);
   const headers: Record<string, string> = { Accept: "application/json", "X-App-Version": __APP_VERSION__, "X-Client": "tenant_app" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   const tok = tokenStore.get();

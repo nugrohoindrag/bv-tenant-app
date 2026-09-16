@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isNative } from "@/lib/native";
 
 export function PwaUpdatePrompt() {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({ immediate: true });
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
 
   useEffect(() => {
@@ -29,6 +26,18 @@ export function PwaUpdatePrompt() {
           <WifiOff size={14} /> Offline, data terakhir ditampilkan
         </div>
       )}
+      {!isNative && <UpdatePrompt />}
+    </>
+  );
+}
+
+function UpdatePrompt() {
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({ immediate: true });
+  return (
+    <>
       {needRefresh && (
         <div className="fixed inset-x-4 bottom-[calc(var(--safe-bottom)+80px)] z-[60] mx-auto max-w-[448px] rounded-xl bg-card p-3 shadow-float ring-1 ring-border fade-up">
           <div className="flex items-center gap-3">

@@ -60,3 +60,19 @@ Static hosting (Caddy/Nginx/S3 + CDN) dengan fallback SPA ke `index.html`, **HTT
 - Status Service Request mengikuti `contracts/status-map.yaml` backend (label Indonesia); transisi divalidasi server dan client hanya menampilkan `allowed_actions`.
 - Foto dikompres di browser (≤1600 px, JPEG q0.8) sebelum diunggah.
 - Pembayaran online belum aktif; tagihan dibayar manual dan diverifikasi Finance.
+
+## Build app Android & iOS (Capacitor)
+
+Selain TWA (`twa/`, Bubblewrap — perlu PWA sudah di-host HTTPS), repo ini juga membungkus PWA dengan **Capacitor 7** (`android/`, `ios/`) sehingga bisa dibuild jadi APK/AAB dan app iOS dari satu codebase.
+
+| Perintah | Fungsi |
+|---|---|
+| `npm run cap:sync` | build PWA + salin `dist/` ke proyek native |
+| `npm run android:apk` | APK debug via Gradle → `android/app/build/outputs/apk/debug/app-debug.apk` |
+| `npm run android:release` | APK release unsigned (tandatangani dengan keystore) |
+| `npm run cap:android` / `npm run cap:ios` | buka Android Studio / Xcode |
+
+- Prasyarat Android: JDK **21** + Android SDK 35. Toolchain portable: `D:\tools\jdk-21`, `D:\Android\Sdk` (dipakai otomatis oleh `scripts/build-android.mjs`).
+- iOS: `cd ios/App && pod install`, lalu `npx cap open ios` (macOS/Xcode; set Team di Signing).
+- **`VITE_API_BASE` wajib diisi** (URL API absolut) saat build native karena tidak ada proxy `/api`; backend harus mengizinkan origin `http://localhost` (Android) & `capacitor://localhost` (iOS) di `BV_CORS_ORIGINS`.
+- Ikon/splash native dibuat dari `assets/` dengan `npx @capacitor/assets generate` (sudah dijalankan).

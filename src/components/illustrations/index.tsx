@@ -8,17 +8,11 @@ const NAVY = "#252a48";
 const SKIN = "#f6d3b8";
 const SHIRT = "#ffffff";
 
-export function Logo({ size = 48, className }: { size?: number; className?: string }) {
+/** Mark BuildingVision ("vision": lensa bersarang) — geometri sama dengan buildingvision/design-tokens/logo/mark.svg. */
+export function Logo({ size = 48, className, color = "#0442B9" }: { size?: number; className?: string; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" className={className} aria-hidden>
-      <defs>
-        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#5fd3c6" />
-          <stop offset="1" stopColor="#1f9bb3" />
-        </linearGradient>
-      </defs>
-      <path d="M10 42 L22 26 L34 42 M30 42 L42 26 L54 42 M54 42 V32" fill="none" stroke="url(#lg)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="20" y="36" width="4" height="4" rx="1" fill="url(#lg)" />
+    <svg width={size} height={Math.round((size * 260) / 362)} viewBox="0 0 362 260" className={className} aria-hidden>
+      <path d="M6 130H62 M302 130H356 M62 130C110 -35 254 -35 302 130 M62 130C110 6 254 6 302 130 M62 130C110 46 254 46 302 130 M62 130C110 86 254 86 302 130 M62 130C110 295 254 295 302 130 M62 130C110 254 254 254 302 130 M62 130C110 214 254 214 302 130 M62 130C110 174 254 174 302 130" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

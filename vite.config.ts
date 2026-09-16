@@ -76,6 +76,15 @@ export default defineConfig({
       "/public": { target: apiTarget, changeOrigin: true },
     },
   },
+  // `vite preview --host`: uji build produksi/TWA dari perangkat lain di LAN, tetap memproxy API ke backend
+  preview: {
+    port: 4173,
+    allowedHosts: [".trycloudflare.com"], // uji TWA lewat Cloudflare quick tunnel (HTTPS)
+    proxy: {
+      "/api": { target: apiTarget, changeOrigin: true },
+      "/public": { target: apiTarget, changeOrigin: true },
+    },
+  },
   build: {
     sourcemap: false,
     rollupOptions: {

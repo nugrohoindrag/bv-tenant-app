@@ -1,0 +1,43 @@
+{
+  "packageId": "id.buildingvision.tenant",
+  "host": "preferences-engage-temple-grounds.trycloudflare.com",
+  "name": "BuildingVision Tenant",
+  "launcherName": "BV Tenant",
+  "display": "standalone",
+  "themeColor": "#14A69E",
+  "themeColorDark": "#0F172A",
+  "navigationColor": "#14A69E",
+  "navigationColorDark": "#0F172A",
+  "navigationDividerColor": "#14A69E",
+  "navigationDividerColorDark": "#0F172A",
+  "backgroundColor": "#F5F7FA",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://preferences-engage-temple-grounds.trycloudflare.com/icons/icon-512.png",
+  "maskableIconUrl": "https://preferences-engage-temple-grounds.trycloudflare.com/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "D:/Master/Building Vision/keys/bv-tenant-twa.jks",
+    "alias": "bvtenant"
+  },
+  "appVersionName": "0.1.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://preferences-engage-temple-grounds.trycloudflare.com/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://preferences-engage-temple-grounds.trycloudflare.com/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "0.1.0"
+}

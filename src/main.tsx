@@ -7,11 +7,21 @@ import { router } from "./app/router";
 import { AuthProvider } from "./app/auth";
 import { ToastProvider } from "./components/ui/toast";
 import { PwaUpdatePrompt } from "./app/pwa-update";
+import { initNative } from "./lib/native";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: true },
   },
+});
+
+// Tombol back Android (Capacitor): mundur bila ada riwayat; di root keluar app.
+const ROOTS = ["/", "/welcome", "/login", "/requests", "/facilities", "/visitors", "/bills"];
+initNative(() => {
+  const path = router.state.location.pathname;
+  if (ROOTS.includes(path) || window.history.length <= 1) return false;
+  router.navigate(-1);
+  return true;
 });
 
 createRoot(document.getElementById("root")!).render(
