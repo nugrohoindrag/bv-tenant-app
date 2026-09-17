@@ -61,7 +61,8 @@
 :root {
   --bv-gradient: linear-gradient(90deg, #5fd3c6 0%, #1f9bb3 100%);
   --bv-gradient-v: linear-gradient(180deg, #5fd3c6 0%, #1f9bb3 100%);
-  --safe-top: env(safe-area-inset-top, 0px);
+  /* min 12px: di browser/PWA non-standalone inset = 0 sehingga header terlalu mepet ke atas */
+  --safe-top: max(env(safe-area-inset-top, 0px), 12px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
 }
