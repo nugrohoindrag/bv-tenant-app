@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { CategoryIcon } from "@/components/category-icon";
 import { errorMessage } from "@/lib/http";
-import { fmtDateTime, fmtDateTimeComma, fmtRelative } from "@/lib/format";
+import { contactPreferenceLabel, fmtDateTime, fmtDateTimeComma, fmtRelative } from "@/lib/format";
 import { compressImage, useObjectUrls } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
@@ -105,7 +105,7 @@ export default function RequestDetailPage() {
             {sr.due_estimate_at && !["resolved", "closed", "cancelled"].includes(sr.tenant_status) && <Row icon={<Clock size={16} />} label="Estimasi selesai" value={fmtDateTimeComma(sr.due_estimate_at)} />}
             {sr.assigned_team && <Row icon={<Users size={16} />} label="Ditangani oleh" value={sr.assigned_team} />}
             {sr.preferred_visit_at && <Row icon={<Clock size={16} />} label="Waktu kunjungan diminta" value={fmtDateTimeComma(sr.preferred_visit_at)} />}
-            {sr.contact_preference && <Row icon={<MessageCircle size={16} />} label="Preferensi kontak" value={sr.contact_preference} />}
+            {sr.contact_preference && <Row icon={<MessageCircle size={16} />} label="Preferensi kontak" value={contactPreferenceLabel(sr.contact_preference)} />}
             <p className="mt-3 whitespace-pre-line text-[13px] leading-relaxed text-neutral-700">{sr.description}</p>
             {sr.additional_note && <p className="mt-2 text-[12px] text-neutral-500">Catatan: {sr.additional_note}</p>}
             {sr.photos.filter((p) => p.kind !== "resolution").length > 0 && <PhotoStrip photos={sr.photos.filter((p) => p.kind !== "resolution")} size={120} className="mt-3" />}

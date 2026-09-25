@@ -10,7 +10,7 @@ import { PhotoStrip } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { CategoryIcon } from "@/components/category-icon";
 import { errorMessage } from "@/lib/http";
-import { fmtDateTimeComma } from "@/lib/format";
+import { contactPreferenceLabel, fmtDateTimeComma } from "@/lib/format";
 import { useReportDraft } from "./ReportLayout";
 
 export default function ConfirmStep() {
@@ -81,7 +81,7 @@ export default function ConfirmStep() {
           <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-700">{draft.description}</p>
           {(draft.contact_preference || draft.preferred_visit_at || draft.additional_note) && (
             <ul className="mt-3 space-y-1 text-[13px] text-neutral-600">
-              {draft.contact_preference && <li>Kontak: {draft.contact_preference}</li>}
+              {draft.contact_preference && <li>Kontak: {contactPreferenceLabel(draft.contact_preference)}</li>}
               {draft.preferred_visit_at && <li>Waktu kunjungan: {fmtDateTimeComma(new Date(draft.preferred_visit_at))}</li>}
               {draft.additional_note && <li>Catatan: {draft.additional_note}</li>}
             </ul>

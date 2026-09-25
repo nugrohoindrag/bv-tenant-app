@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { StickyFooter } from "@/components/ui/shell";
+import { CONTACT_PREFERENCES } from "@/lib/format";
 import { useReportDraft } from "./ReportLayout";
 
 const MIN = 10;
@@ -34,7 +35,7 @@ export default function DescribeStep() {
         </button>
         {more && (
           <div className="space-y-4 rounded-xl bg-neutral-50 p-3">
-            <Select variant="box" label="Preferensi kontak" value={draft.contact_preference} onChange={(e) => update({ contact_preference: e.target.value })} options={[{ value: "", label: "— tidak ada —" }, { value: "app_message", label: "Pesan di aplikasi" }, { value: "phone", label: "Telepon" }, { value: "whatsapp", label: "WhatsApp" }]} />
+            <Select variant="box" label="Preferensi kontak" value={draft.contact_preference} onChange={(e) => update({ contact_preference: e.target.value })} options={[{ value: "", label: "— tidak ada —" }, ...CONTACT_PREFERENCES]} />
             <Input variant="box" label="Waktu kunjungan yang diinginkan" type="datetime-local" value={draft.preferred_visit_at} onChange={(e) => update({ preferred_visit_at: e.target.value })} />
             <Input variant="box" label="Catatan tambahan" placeholder="mis. kunci dititipkan di resepsionis" value={draft.additional_note} onChange={(e) => update({ additional_note: e.target.value })} maxLength={300} />
           </div>

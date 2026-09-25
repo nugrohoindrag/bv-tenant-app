@@ -4,6 +4,17 @@ import { id as idLocale } from "date-fns/locale";
 
 const toDate = (d: string | Date) => (typeof d === "string" ? parseISO(d) : d);
 
+// Kode contact_preference (disimpan backend apa adanya) → label tenant-facing.
+export const CONTACT_PREFERENCES = [
+  { value: "app_message", label: "Pesan di aplikasi" },
+  { value: "phone", label: "Telepon" },
+  { value: "whatsapp", label: "WhatsApp" },
+];
+
+export function contactPreferenceLabel(code: string): string {
+  return CONTACT_PREFERENCES.find((c) => c.value === code)?.label ?? code;
+}
+
 export function fmtRupiah(n: number): string {
   return "Rp " + Math.round(n).toLocaleString("id-ID");
 }
