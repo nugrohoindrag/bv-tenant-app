@@ -2,18 +2,29 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import fs from "node:fs";
 import path from "node:path";
 
 // Tenant App = PWA (keputusan user 15 Sep 2026). Stack mengikuti buildingvision/web (React 19 SPA, Vite, Tailwind v4);
-// proxy /api & /public ke backend Go saat dev. Service worker: generateSW (workbox) + prompt update.
+// proxy /api & /public ke backend Go saat dev. Service worker: injectManifest (src/sw.ts — cache sama dengan generateSW
+// sebelumnya + handler Web Push, PRD P3 v2.1 P3-PSH-01) + prompt update.
 const apiTarget = process.env.BV_API_URL || "http://localhost:8080";
+
+// Push native (FCM, P3-PSH-02) hanya aktif bila build memiliki konfigurasi Firebase: tanpa google-services.json,
+// PushNotifications.register() membuat app Android crash di sisi native (tidak dapat ditangkap JS). VITE_FCM_ENABLED
+// (true/false di .env) menimpa deteksi ini — lihat src/lib/push.ts.
+const fcmConfigured = fs.existsSync(path.resolve(import.meta.dirname, "android/app/google-services.json"));
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "prompt",
+      injectRegister: false,
       includeAssets: ["icons/*.svg", "icons/*.png"],
       manifest: {
         id: "/",
@@ -40,34 +51,14 @@ export default defineConfig({
           { name: "Riwayat", short_name: "Riwayat", url: "/history", icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api\//, /^\/public\//],
-        cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          {
-            urlPattern: ({ url, request }) =>
-              request.method === "GET" && (url.pathname.startsWith("/api/v1/tenant/") || url.pathname.startsWith("/api/v1/service-request-categories")),
-            handler: "NetworkFirst",
-            options: { cacheName: "bv-tenant-api", networkTimeoutSeconds: 6, expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 } },
-          },
-          {
-            urlPattern: ({ request }) => request.destination === "image",
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "bv-tenant-img", expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 14 } },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-            handler: "CacheFirst",
-            options: { cacheName: "bv-fonts", expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
-          },
-        ],
+        rollupFormat: "iife",
       },
       devOptions: { enabled: false },
     }),
   ],
-  define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "0.1.0") },
+  define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "0.1.0"), __FCM_CONFIGURED__: JSON.stringify(fcmConfigured) },
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   server: {
     port: 5174,

@@ -13,8 +13,8 @@ const day = (offsetDays: number, h = 9, m = 0) => {
 export const ORG = { id: "org-demo", slug: "graha-pangeran", name: "PT Graha Pangeran Property" };
 
 export const PROPERTIES: Option[] = [
-  { id: "prop-pinus", name: "Graha Pinus Residence", profile: "apartment" },
-  { id: "prop-tower", name: "Menara Pangeran Office", profile: "office" },
+  { id: "prop-pinus", name: "Graha Pinus Residence", profile: "apartment", whatsapp_number: "6281100001234" },
+  { id: "prop-tower", name: "Menara Pangeran Office", profile: "office", whatsapp_number: "6281100005678" },
 ];
 export const FLOORS: Option[] = [
   { id: "fl-pinus-1", name: "Lantai 1", parent_id: "prop-pinus" },
@@ -208,6 +208,8 @@ export const NOTIFICATIONS: Notification[] = [
 ];
 
 export const ANNOUNCEMENTS: Announcement[] = [
-  { id: "an-1", title: "Pemeliharaan lift Tower Pinus", excerpt: "Lift B dimatikan Sabtu 09:00–12:00 untuk servis rutin.", body: "Lift B Tower Pinus akan dimatikan pada Sabtu pukul 09:00–12:00 untuk pemeliharaan rutin.\n\nSilakan gunakan Lift A selama periode tersebut. Mohon maaf atas ketidaknyamanannya.", importance: "important", published_at: iso(-60 * 24 * 1), expires_at: null, image_url: placeholder("Lift", "navy") },
-  { id: "an-2", title: "Fogging nyamuk area taman", excerpt: "Fogging dilakukan Minggu pagi; tutup jendela unit Anda.", body: "Fogging area taman dan koridor akan dilakukan Minggu pukul 06:00–08:00.\n\nMohon menutup jendela dan tidak berada di area taman selama fogging berlangsung.", importance: "normal", published_at: iso(-60 * 24 * 3), expires_at: null, image_url: placeholder("Taman", "green") },
+  { id: "an-3", title: "Pemadaman listrik terencana Tower Pinus", excerpt: "PLN memadamkan listrik Kamis 13:00–15:00. Genset hanya untuk lift & lampu darurat.", body: "PLN akan melakukan pemadaman listrik terencana pada Kamis pukul 13:00–15:00.\n\nSelama pemadaman, genset hanya menyalakan lift dan lampu darurat. Mohon cabut peralatan elektronik sensitif.", importance: "important", category: "alert", severity: "warning", requires_ack: true, read_at: null, acknowledged_at: null, published_at: iso(-60 * 3), expires_at: null },
+  { id: "an-1", title: "Pemeliharaan lift Tower Pinus", excerpt: "Lift B dimatikan Sabtu 09:00–12:00 untuk servis rutin.", body: "Lift B Tower Pinus akan dimatikan pada Sabtu pukul 09:00–12:00 untuk pemeliharaan rutin.\n\nSilakan gunakan Lift A selama periode tersebut. Mohon maaf atas ketidaknyamanannya.", importance: "important", category: "announcement", severity: "info", requires_ack: false, read_at: null, acknowledged_at: null, published_at: iso(-60 * 24 * 1), expires_at: null, image_url: placeholder("Lift", "navy") },
+  { id: "an-2", title: "Fogging nyamuk area taman", excerpt: "Fogging dilakukan Minggu pagi; tutup jendela unit Anda.", body: "Fogging area taman dan koridor akan dilakukan Minggu pukul 06:00–08:00.\n\nMohon menutup jendela dan tidak berada di area taman selama fogging berlangsung.", importance: "normal", category: "announcement", severity: "info", requires_ack: false, read_at: iso(-60 * 24 * 2), acknowledged_at: null, published_at: iso(-60 * 24 * 3), expires_at: null, image_url: placeholder("Taman", "green") },
+  { id: "an-4", title: "Bazar UMKM akhir pekan di lobby", excerpt: "Bazar produk penghuni Sabtu–Minggu, 10:00–18:00.", body: "Bazar UMKM penghuni akan digelar di lobby Tower Pinus pada Sabtu–Minggu pukul 10:00–18:00.\n\nPenghuni yang ingin membuka lapak dapat menghubungi resepsionis.", importance: "normal", category: "news", severity: "info", requires_ack: false, read_at: null, acknowledged_at: null, published_at: iso(-60 * 24 * 2), expires_at: null, image_url: placeholder("Bazar", "amber") },
 ];

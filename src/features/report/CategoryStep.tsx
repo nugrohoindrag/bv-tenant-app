@@ -33,7 +33,8 @@ export default function CategoryStep() {
             <button
               type="button"
               onClick={() => {
-                update({ category: c });
+                // jenis permintaan mengikuti default kategori; tenant masih bisa mengubahnya di langkah berikut
+                update({ category: c, request_type: c.request_type ?? "" });
                 nav("/report/describe");
               }}
               className={cn("tap flex w-full items-center gap-5 py-4 text-left", active && "bg-brand-50/60")}

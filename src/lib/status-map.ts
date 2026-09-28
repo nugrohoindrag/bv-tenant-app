@@ -2,7 +2,7 @@
 export type Semantic = "success" | "warning" | "critical" | "info" | "neutral";
 export type Variant = "solid" | "soft" | "outline";
 export interface StatusDef { label_id: string; label_en: string; semantic: Semantic; variant: Variant; icon?: string }
-export type ObjectType = "service_request" | "service_request_tenant" | "booking" | "visitor" | "invoice" | "payment";
+export type ObjectType = "service_request" | "service_request_tenant" | "booking" | "visitor" | "invoice" | "payment" | "tenant_user" | "announcement" | "package" | "parking_permit" | "vehicle" | "tenant_feedback";
 export const statusMap: Record<ObjectType, Record<string, StatusDef>> = {
   "service_request": {
     "new": {
@@ -12,8 +12,8 @@ export const statusMap: Record<ObjectType, Record<string, StatusDef>> = {
       "variant": "soft"
     },
     "acknowledged": {
-      "label_id": "Diterima",
-      "label_en": "Acknowledged",
+      "label_id": "Ditriase",
+      "label_en": "Triaged",
       "semantic": "info",
       "variant": "soft"
     },
@@ -272,6 +272,168 @@ export const statusMap: Record<ObjectType, Record<string, StatusDef>> = {
       "label_en": "Refunded",
       "semantic": "neutral",
       "variant": "soft"
+    }
+  },
+  "tenant_user": {
+    "pending_validation": {
+      "label_id": "Menunggu Validasi",
+      "label_en": "Pending Validation",
+      "semantic": "warning",
+      "variant": "soft"
+    },
+    "active": {
+      "label_id": "Aktif",
+      "label_en": "Active",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "rejected": {
+      "label_id": "Ditolak",
+      "label_en": "Rejected",
+      "semantic": "critical",
+      "variant": "soft"
+    },
+    "suspended": {
+      "label_id": "Ditangguhkan",
+      "label_en": "Suspended",
+      "semantic": "neutral",
+      "variant": "outline"
+    }
+  },
+  "announcement": {
+    "draft": {
+      "label_id": "Draft",
+      "label_en": "Draft",
+      "semantic": "neutral",
+      "variant": "outline"
+    },
+    "scheduled": {
+      "label_id": "Terjadwal",
+      "label_en": "Scheduled",
+      "semantic": "info",
+      "variant": "soft"
+    },
+    "published": {
+      "label_id": "Terbit",
+      "label_en": "Published",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "archived": {
+      "label_id": "Diarsipkan",
+      "label_en": "Archived",
+      "semantic": "neutral",
+      "variant": "outline"
+    }
+  },
+  "package": {
+    "received": {
+      "label_id": "Diterima",
+      "label_en": "Received",
+      "semantic": "info",
+      "variant": "soft"
+    },
+    "notified": {
+      "label_id": "Menunggu Diambil",
+      "label_en": "Awaiting Pickup",
+      "semantic": "warning",
+      "variant": "soft"
+    },
+    "picked_up": {
+      "label_id": "Sudah Diambil",
+      "label_en": "Picked Up",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "returned": {
+      "label_id": "Dikembalikan",
+      "label_en": "Returned",
+      "semantic": "neutral",
+      "variant": "outline"
+    }
+  },
+  "parking_permit": {
+    "requested": {
+      "label_id": "Diajukan",
+      "label_en": "Requested",
+      "semantic": "warning",
+      "variant": "soft"
+    },
+    "approved": {
+      "label_id": "Disetujui",
+      "label_en": "Approved",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "rejected": {
+      "label_id": "Ditolak",
+      "label_en": "Rejected",
+      "semantic": "critical",
+      "variant": "soft"
+    },
+    "cancelled": {
+      "label_id": "Dibatalkan",
+      "label_en": "Cancelled",
+      "semantic": "neutral",
+      "variant": "outline"
+    },
+    "expired": {
+      "label_id": "Berakhir",
+      "label_en": "Expired",
+      "semantic": "neutral",
+      "variant": "soft"
+    },
+    "revoked": {
+      "label_id": "Dicabut",
+      "label_en": "Revoked",
+      "semantic": "critical",
+      "variant": "outline"
+    }
+  },
+  "vehicle": {
+    "active": {
+      "label_id": "Aktif",
+      "label_en": "Active",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "inactive": {
+      "label_id": "Nonaktif",
+      "label_en": "Inactive",
+      "semantic": "neutral",
+      "variant": "outline"
+    },
+    "blacklisted": {
+      "label_id": "Blacklist",
+      "label_en": "Blacklisted",
+      "semantic": "critical",
+      "variant": "solid"
+    }
+  },
+  "tenant_feedback": {
+    "new": {
+      "label_id": "Baru",
+      "label_en": "New",
+      "semantic": "info",
+      "variant": "soft"
+    },
+    "in_review": {
+      "label_id": "Ditinjau",
+      "label_en": "In Review",
+      "semantic": "warning",
+      "variant": "soft"
+    },
+    "responded": {
+      "label_id": "Ditanggapi",
+      "label_en": "Responded",
+      "semantic": "success",
+      "variant": "soft"
+    },
+    "closed": {
+      "label_id": "Ditutup",
+      "label_en": "Closed",
+      "semantic": "success",
+      "variant": "solid"
     }
   }
 } as const;

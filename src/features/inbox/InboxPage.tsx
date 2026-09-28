@@ -1,14 +1,19 @@
-// Inbox (PRD P1 v1.3 §20; nav Inbox): notifikasi tenant (ticket, booking, tamu, tagihan) + Pengumuman building management.
-// Deep link dari server (/requests/{id}, /facilities/bookings/{id}, /visitors/{id}, /bills/{id}, /inbox/announcements/{id}).
+// Inbox (PRD P1 v1.3 §20; ikon lonceng di header, D-P3-01): notifikasi tenant + Pengumuman building management dengan filter
+// kategori (Semua / Pengumuman / News / Alert — D-P3-06), gaya per severity, penanda belum dibaca & perlu konfirmasi (P3-ANN-05).
+// Deep link server divalidasi ke route yang ada (B-01): /requests/{id}, /bills/{id}?payment=, /packages/{id}, /parking/permits/{id},
+// /feedback/{id}, /inbox/announcements/{id}, /account, … — tidak dikenal → tetap di Inbox.
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, CalendarDays, CheckCheck, ClipboardList, Megaphone, UserRound, Wallet } from "lucide-react";
+import { AlertTriangle, Bell, CalendarDays, Car, CheckCheck, ClipboardList, Megaphone, MessageSquareText, Package, UserRound, Wallet } from "lucide-react";
 import { api } from "@/api";
-import type { Notification } from "@/api/types";
+import type { Announcement, AnnouncementCategory, Notification } from "@/api/types";
 import { Page, TopBar } from "@/components/ui/shell";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/misc";
+import { FilterTabs } from "@/components/ui/controls";
 import { errorMessage } from "@/lib/http";
 import { fmtRelative } from "@/lib/format";
+import { resolveDeepLink } from "@/lib/deep-link";
+import { ANNOUNCEMENT_CATEGORY, ANNOUNCEMENT_FILTERS, announcementTone } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 function iconFor(n: Notification) {
@@ -21,9 +26,17 @@ function iconFor(n: Notification) {
       return <UserRound size={20} />;
     case "invoice":
     case "payment":
+    case "credit_note":
       return <Wallet size={20} />;
     case "announcement":
       return <Megaphone size={20} />;
+    case "package":
+      return <Package size={20} />;
+    case "parking_permit":
+    case "parking_violation":
+      return <Car size={20} />;
+    case "tenant_feedback":
+      return <MessageSquareText size={20} />;
     default:
       return <Bell size={20} />;
   }
@@ -33,9 +46,10 @@ export default function InboxPage() {
   const nav = useNavigate();
   const [sp, setSp] = useSearchParams();
   const tab = sp.get("tab") === "announcements" ? "announcements" : "notifications";
+  const cat = (sp.get("category") ?? "") as "" | AnnouncementCategory;
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["notifications"], queryFn: () => api().notifications(), enabled: tab === "notifications", refetchInterval: 30_000 });
-  const ann = useQuery({ queryKey: ["announcements"], queryFn: () => api().announcements(), enabled: tab === "announcements" });
+  const ann = useQuery({ queryKey: ["announcements", "list", cat], queryFn: () => api().announcements({ category: cat || null }), enabled: tab === "announcements" });
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["notifications"] });
     qc.invalidateQueries({ queryKey: ["unread"] });
@@ -54,6 +68,14 @@ export default function InboxPage() {
           </button>
         ))}
       </div>
+      {tab === "announcements" && (
+        <FilterTabs
+          className="px-4 pb-3"
+          value={cat}
+          onChange={(c) => setSp(c ? { tab: "announcements", category: c } : { tab: "announcements" }, { replace: true })}
+          options={ANNOUNCEMENT_FILTERS.map((f) => ({ value: f.key, label: f.label }))}
+        />
+      )}
       <div className="flex flex-col gap-2 px-4 pb-4">
         {tab === "notifications" ? (
           q.isLoading ? (
@@ -61,7 +83,7 @@ export default function InboxPage() {
           ) : q.error ? (
             <ErrorState message={errorMessage(q.error)} onRetry={() => q.refetch()} />
           ) : !q.data?.length ? (
-            <EmptyState icon={<Bell size={48} />} title="Belum ada notifikasi" description="Pembaruan ticket, booking, tamu, dan tagihan akan tampil di sini." />
+            <EmptyState icon={<Bell size={48} />} title="Belum ada notifikasi" description="Pembaruan permintaan, booking, tamu, paket, parkir, dan tagihan akan tampil di sini." />
           ) : (
             q.data.map((n) => (
               <button
@@ -69,11 +91,11 @@ export default function InboxPage() {
                 type="button"
                 onClick={() => {
                   if (!n.read_at) read.mutate(n.id);
-                  if (n.deep_link) nav(n.deep_link);
+                  if (n.deep_link) nav(resolveDeepLink(n.deep_link));
                 }}
                 className={cn("tap flex items-start gap-3 rounded-xl p-3.5 text-left shadow-card", n.read_at ? "bg-card" : "bg-brand-50/70 ring-1 ring-brand-100")}
               >
-                <span className={cn("mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full", n.read_at ? "bg-neutral-100 text-neutral-500" : n.severity === "warning" || n.severity === "critical" ? "bg-warning text-white" : "bg-brand-500 text-white")}>{iconFor(n)}</span>
+                <span className={cn("mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full", n.read_at ? "bg-neutral-100 text-neutral-500" : n.severity === "critical" ? "bg-critical text-white" : n.severity === "warning" ? "bg-warning text-white" : "bg-brand-500 text-white")}>{iconFor(n)}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className={cn("truncate text-[14px]", n.read_at ? "font-semibold" : "font-bold")}>{n.title}</div>
@@ -89,23 +111,34 @@ export default function InboxPage() {
         ) : ann.error ? (
           <ErrorState message={errorMessage(ann.error)} onRetry={() => ann.refetch()} />
         ) : !ann.data?.data.length ? (
-          <EmptyState icon={<Megaphone size={48} />} title="Belum ada pengumuman" />
+          <EmptyState icon={<Megaphone size={48} />} title={cat ? `Belum ada ${ANNOUNCEMENT_CATEGORY[cat]?.toLowerCase() ?? "pengumuman"}` : "Belum ada pengumuman"} />
         ) : (
-          ann.data.data.map((a) => (
-            <button key={a.id} type="button" onClick={() => nav(`/inbox/announcements/${a.id}`)} className="tap overflow-hidden rounded-xl bg-card text-left shadow-card">
-              {a.image_url && <img src={a.image_url} alt="" className="h-32 w-full object-cover" loading="lazy" />}
-              <div className="p-3.5">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase text-neutral-500">
-                  {(a.importance === "important" || a.importance === "urgent") && <span className="rounded-md bg-warning-soft px-1.5 py-0.5 text-warning-text">Penting</span>}
-                  {a.published_at ? fmtRelative(a.published_at) : ""}
-                </div>
-                <div className="mt-1 text-[15px] font-bold">{a.title}</div>
-                {a.excerpt && <p className="mt-0.5 line-clamp-2 text-[13px] text-neutral-600">{a.excerpt}</p>}
-              </div>
-            </button>
-          ))
+          ann.data.data.map((a) => <AnnouncementCard key={a.id} a={a} onClick={() => nav(`/inbox/announcements/${a.id}`)} />)
         )}
       </div>
     </Page>
+  );
+}
+
+function AnnouncementCard({ a, onClick }: { a: Announcement; onClick: () => void }) {
+  const tone = announcementTone(a);
+  const needsAck = a.requires_ack && !a.acknowledged_at;
+  return (
+    <button type="button" onClick={onClick} className={cn("tap overflow-hidden rounded-xl bg-card text-left shadow-card", tone === "critical" ? "ring-2 ring-critical" : tone === "warning" ? "ring-1 ring-warning" : undefined)}>
+      {a.image_url && <img src={a.image_url} alt="" className="h-32 w-full object-cover" loading="lazy" />}
+      <div className="p-3.5">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase text-neutral-500">
+          <span className={cn("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5", tone === "critical" ? "bg-critical text-white" : tone === "warning" ? "bg-warning-soft text-warning-text" : a.category === "news" ? "bg-info-soft text-info-text" : "bg-brand-50 text-brand-700")}>
+            {tone !== "info" && <AlertTriangle size={11} />}
+            {ANNOUNCEMENT_CATEGORY[a.category ?? "announcement"] ?? "Pengumuman"}
+          </span>
+          {needsAck && <span className="rounded-md bg-warning px-1.5 py-0.5 text-white">Perlu konfirmasi</span>}
+          <span>{a.published_at ? fmtRelative(a.published_at) : ""}</span>
+          {!a.read_at && <span className="ml-auto h-2 w-2 rounded-full bg-brand-500" aria-label="Belum dibaca" />}
+        </div>
+        <div className={cn("mt-1 text-[15px]", a.read_at ? "font-semibold" : "font-bold")}>{a.title}</div>
+        {a.excerpt && <p className="mt-0.5 line-clamp-2 text-[13px] text-neutral-600">{a.excerpt}</p>}
+      </div>
+    </button>
   );
 }

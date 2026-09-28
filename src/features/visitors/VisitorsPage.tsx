@@ -1,11 +1,12 @@
-// Visitors (PRD P1 v1.3 §3.7 Visitor Management; nav Visitors): pra-registrasi tamu oleh tenant, pass/QR, status kunjungan.
+// Tamu (PRD P1 v1.3 §3.7 Visitor Management): pra-registrasi tamu oleh tenant, pass/QR, status kunjungan. Sejak D-P3-01 bukan
+// tab lagi — dibuka dari quick action Home (halaman dengan tombol kembali).
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, QrCode, UserRoundPlus } from "lucide-react";
 import { api } from "@/api";
 import type { Visitor } from "@/api/types";
 import { Button } from "@/components/ui/button";
-import { Page, TabHeader } from "@/components/ui/shell";
+import { Page, TopBar } from "@/components/ui/shell";
 import { EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/misc";
 import { errorMessage } from "@/lib/http";
 import { fmtDayShort, fmtTime } from "@/lib/terms";
@@ -17,9 +18,10 @@ export default function VisitorsPage() {
   const upcoming = rows.filter((v) => ["pending_approval", "registered", "checked_in"].includes(v.status));
   const past = rows.filter((v) => !["pending_approval", "registered", "checked_in"].includes(v.status));
   return (
-    <Page bottomNav>
-      <TabHeader title="Visitors" subtitle="Daftarkan tamu agar akses di lobi lebih cepat" right={<Button size="sm" onClick={() => nav("/visitors/new")}><UserRoundPlus size={16} /> Tamu</Button>} />
-      <div className="flex flex-col gap-3 px-4 pb-4 pt-1">
+    <Page className="pb-6">
+      <TopBar title="Visitors" right={<button type="button" aria-label="Daftarkan tamu" onClick={() => nav("/visitors/new")} className="tap p-2 text-brand-600"><UserRoundPlus size={22} /></button>} />
+      <div className="flex flex-col gap-3 px-4 pb-4 pt-3">
+        <p className="px-1 text-[12px] text-neutral-600">Daftarkan tamu agar akses di lobi lebih cepat.</p>
         {q.isLoading ? (
           [0, 1, 2].map((i) => <Skeleton key={i} className="h-[84px] rounded-xl" />)
         ) : q.error ? (

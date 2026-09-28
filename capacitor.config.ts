@@ -13,6 +13,9 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: { launchShowDuration: 800, launchAutoHide: true, backgroundColor: "#F5F7FA", showSpinner: false },
     StatusBar: { style: "LIGHT", backgroundColor: "#F5F7FA" },
+    // Push FCM (PRD P3 v2.1 P3-PSH-02): butuh android/app/google-services.json (Firebase) — tanpa file itu push native
+    // dinonaktifkan di build (lihat src/lib/push.ts). iOS: tampilkan notifikasi juga saat app di foreground.
+    PushNotifications: { presentationOptions: ["badge", "sound", "alert"] },
   },
 };
 

@@ -25,7 +25,7 @@ css += "}\n";
 fs.writeFileSync(path.join(here, "../src/styles/tokens.css"), css);
 
 // Hanya object yang relevan untuk tenant.
-const groups = ["service_request", "service_request_tenant", "booking", "visitor", "invoice", "payment"].filter((g) => statusMap[g]);
+const groups = ["service_request", "service_request_tenant", "booking", "visitor", "invoice", "payment", "tenant_user", "announcement", "package", "parking_permit", "vehicle", "tenant_feedback"].filter((g) => statusMap[g]);
 let ts = "// GENERATED — jangan edit manual. Sumber: buildingvision/contracts/status-map.yaml. Jalankan `npm run gen`.\n";
 ts += `export type Semantic = "success" | "warning" | "critical" | "info" | "neutral";\nexport type Variant = "solid" | "soft" | "outline";\n`;
 ts += `export interface StatusDef { label_id: string; label_en: string; semantic: Semantic; variant: Variant; icon?: string }\n`;

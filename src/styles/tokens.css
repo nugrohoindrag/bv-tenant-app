@@ -64,4 +64,6 @@
   --bv-type-body-strong-size: 14px; --bv-type-body-strong-line: 20px; --bv-type-body-strong-weight: 600;
   --bv-type-sm-size: 13px; --bv-type-sm-line: 18px; --bv-type-sm-weight: 400;
   --bv-type-xs-size: 12px; --bv-type-xs-line: 16px; --bv-type-xs-weight: 500;
+  --bv-type-label-size: 12px; --bv-type-label-line: 16px; --bv-type-label-weight: 600;
+  --bv-type-caption-size: 11px; --bv-type-caption-line: 16px; --bv-type-caption-weight: 400;
 }

@@ -15,6 +15,20 @@ export function contactPreferenceLabel(code: string): string {
   return CONTACT_PREFERENCES.find((c) => c.value === code)?.label ?? code;
 }
 
+// Jenis permintaan (PRD P1 v2 §27.2) — kode backend `request_type` → label tenant-facing.
+export const REQUEST_TYPES = [
+  { value: "service_request", label: "Permintaan Layanan" },
+  { value: "complaint", label: "Keluhan" },
+  { value: "maintenance_request", label: "Perbaikan" },
+  { value: "cleaning_request", label: "Kebersihan" },
+  { value: "facility_issue", label: "Masalah Fasilitas" },
+  { value: "other", label: "Lainnya" },
+] as const;
+
+export function requestTypeLabel(code: string | null | undefined): string {
+  return REQUEST_TYPES.find((t) => t.value === code)?.label ?? "Permintaan Layanan";
+}
+
 export function fmtRupiah(n: number): string {
   return "Rp " + Math.round(n).toLocaleString("id-ID");
 }

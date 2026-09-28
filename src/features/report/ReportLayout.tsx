@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Camera, MapPin, Pencil, Send, Tag } from "lucide-react";
-import type { AreaScope, SRCategory } from "@/api/types";
+import type { AreaScope, RequestType, SRCategory } from "@/api/types";
 import { TopBar } from "@/components/ui/shell";
 import { loadSession, removeSession, saveSession } from "@/lib/storage";
 import { cn, uuid } from "@/lib/utils";
@@ -18,6 +18,7 @@ export interface ReportDraft {
   photos: DraftPhoto[];
   location: { id: string | null; label: string; scope: AreaScope } | null;
   category: SRCategory | null;
+  request_type: RequestType | "";
   title: string;
   description: string;
   contact_preference: string;
@@ -42,7 +43,7 @@ type Persisted = Omit<ReportDraft, "photos">;
 
 function empty(): ReportDraft {
   const p = loadSession<Partial<Persisted>>(KEY, {});
-  return { photos: [], location: p.location ?? null, category: p.category ?? null, title: p.title ?? "", description: p.description ?? "", contact_preference: p.contact_preference ?? "", preferred_visit_at: p.preferred_visit_at ?? "", additional_note: p.additional_note ?? "", idempotency_key: p.idempotency_key ?? uuid() };
+  return { photos: [], location: p.location ?? null, category: p.category ?? null, request_type: p.request_type ?? "", title: p.title ?? "", description: p.description ?? "", contact_preference: p.contact_preference ?? "", preferred_visit_at: p.preferred_visit_at ?? "", additional_note: p.additional_note ?? "", idempotency_key: p.idempotency_key ?? uuid() };
 }
 
 export function useReportDraft(): DraftApi {
@@ -101,7 +102,7 @@ export default function ReportLayout() {
     submitted.current = true;
     setDraft((d) => {
       d.photos.forEach((p) => URL.revokeObjectURL(p.url));
-      return { photos: [], location: null, category: null, title: "", description: "", contact_preference: "", preferred_visit_at: "", additional_note: "", idempotency_key: uuid() };
+      return { photos: [], location: null, category: null, request_type: "", title: "", description: "", contact_preference: "", preferred_visit_at: "", additional_note: "", idempotency_key: uuid() };
     });
     removeSession(KEY);
   }, []);

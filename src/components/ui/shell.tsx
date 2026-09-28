@@ -1,8 +1,9 @@
-// Kerangka halaman mobile: TopBar (back + judul), Page (scroll area + safe area), BottomNav (PRD P1 v1.3 §7 nav Mobile Tenant:
-// Home | Requests | Facilities | Visitors | Bills; Inbox & Profile di header), StickyFooter.
+// Kerangka halaman mobile: TopBar (back + judul), Page (scroll area + safe area), BottomNav (PRD P3 v2.1 D-P3-01:
+// Home · Requests · Bills · Facilities · Akun; Inbox = ikon lonceng di header; Tamu, Paket, Parkir dari quick action Home),
+// StickyFooter. Label tab lama dipertahankan sampai penyelarasan label setelah P5 (ADJ-05).
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Bell, CalendarDays, ChevronLeft, Home, ListChecks, UserRound, Wallet } from "lucide-react";
+import { Bell, CalendarDays, ChevronLeft, CircleUserRound, Home, ListChecks, Wallet } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api";
 import { useAuth } from "@/app/auth";
@@ -44,14 +45,18 @@ export function StickyFooter({ children, className }: { children: ReactNode; cla
 const tabs = [
   { to: "/", label: "Home", icon: Home, end: true, cap: null },
   { to: "/requests", label: "Requests", icon: ListChecks, cap: null },
-  { to: "/facilities", label: "Facilities", icon: CalendarDays, cap: "facility_booking" },
-  { to: "/visitors", label: "Visitors", icon: UserRound, cap: "visitor_management" },
   { to: "/bills", label: "Bills", icon: Wallet, cap: "billing" },
+  { to: "/facilities", label: "Facilities", icon: CalendarDays, cap: "facility_booking" },
+  { to: "/account", label: "Akun", icon: CircleUserRound, cap: null },
 ];
+
+/** Root tiap tab (tombol back Android di sini keluar aplikasi). */
+export const TAB_ROOTS = tabs.map((t) => t.to);
 
 export function useUnread() {
   const { user } = useAuth();
-  return useQuery({ queryKey: ["unread"], queryFn: () => api().unreadCount(), enabled: !!user, refetchInterval: 30_000 });
+  // akun berpassword sementara: server menolak selain /tenant/me (403 PASSWORD_CHANGE_REQUIRED) → jangan poll
+  return useQuery({ queryKey: ["unread"], queryFn: () => api().unreadCount(), enabled: !!user && !user.must_change_password, refetchInterval: 30_000 });
 }
 
 /** Modul hanya tampil bila capability property aktif (enforcement tetap server-side). */
@@ -82,25 +87,22 @@ export function BottomNav() {
   );
 }
 
-/** Tombol Inbox (badge belum dibaca) + Profil untuk header tab. */
+/** Tombol Inbox (lonceng + badge belum dibaca) untuk header tab (D-P3-01; Akun kini tab sendiri). */
 export function HeaderActions({ light }: { light?: boolean }) {
   const nav = useNavigate();
   const { data: unread } = useUnread();
   const cls = cn("tap relative flex h-10 w-10 items-center justify-center rounded-full", light ? "bg-white/20 text-white" : "bg-card text-neutral-700 shadow-card");
   return (
     <div className="flex items-center gap-2">
-      <button type="button" aria-label="Inbox" className={cls} onClick={() => nav("/inbox")}>
+      <button type="button" aria-label={unread ? `Inbox, ${unread} belum dibaca` : "Inbox"} className={cls} onClick={() => nav("/inbox")}>
         <Bell size={20} />
         {!!unread && <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-critical px-1 text-center text-[10px] font-bold leading-[18px] text-white">{unread > 9 ? "9+" : unread}</span>}
-      </button>
-      <button type="button" aria-label="Profil" className={cls} onClick={() => nav("/account")}>
-        <UserRound size={20} />
       </button>
     </div>
   );
 }
 
-/** Header tab (judul + aksi Inbox/Profil) — dipakai Requests/Facilities/Visitors/Bills. */
+/** Header tab (judul + lonceng Inbox) — dipakai Requests/Facilities/Bills/Akun. */
 export function TabHeader({ title, subtitle, right, children }: { title: string; subtitle?: string; right?: ReactNode; children?: ReactNode }) {
   return (
     <header className="pt-safe sticky top-0 z-30 bg-background">

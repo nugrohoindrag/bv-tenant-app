@@ -1,13 +1,17 @@
 // Tenant Account Validation (PRD P1 §6 Tenant Onboarding; AC-06..08): pendaftaran memberi tahu Tenant Relation; akun aktif setelah
-// divalidasi building management (notifikasi/email). Halaman ini hanya informasi status.
+// divalidasi building management (notifikasi/email). Halaman ini hanya informasi status + "Hubungi pengelola" bila nomor WhatsApp
+// property diketahui (disimpan saat mendaftar dari daftar property registrasi).
 import { ChevronLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Cityscape, MailIllustration } from "@/components/illustrations";
+import { WhatsAppButton } from "@/components/contact";
+import { cachedManagementContact } from "@/lib/whatsapp";
 
 export default function ValidationPage() {
   const nav = useNavigate();
   const { state } = useLocation() as { state?: { userId?: string; email?: string; message?: string } };
+  const contact = cachedManagementContact();
 
   return (
     <div className="app-shell relative flex min-h-dvh flex-col overflow-hidden bg-card">
@@ -23,6 +27,14 @@ export default function ValidationPage() {
             Kami akan memberi tahu {state?.email ? <span className="font-semibold">{state.email}</span> : "Anda"} setelah validasi selesai. Sampai saat itu, login belum dapat dilakukan.
           </p>
         </div>
+        {contact.whatsapp_number && (
+          <WhatsAppButton
+            number={contact.whatsapp_number}
+            variant="outline"
+            className="mb-3"
+            text={`Halo pengelola${contact.property_name ? ` ${contact.property_name}` : ""}, saya baru mendaftar akun Tenant App${state?.email ? ` (${state.email})` : ""} dan menunggu validasi.`}
+          />
+        )}
         <Button block size="lg" onClick={() => nav("/login", { replace: true })}>
           Ke Halaman Login
         </Button>

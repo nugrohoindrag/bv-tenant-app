@@ -10,7 +10,7 @@ import { PhotoStrip } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { CategoryIcon } from "@/components/category-icon";
 import { errorMessage } from "@/lib/http";
-import { contactPreferenceLabel, fmtDateTimeComma } from "@/lib/format";
+import { contactPreferenceLabel, fmtDateTimeComma, requestTypeLabel } from "@/lib/format";
 import { useReportDraft } from "./ReportLayout";
 
 export default function ConfirmStep() {
@@ -30,6 +30,7 @@ export default function ConfirmStep() {
     try {
       const sr = await api().createServiceRequest({
         category_code: draft.category.code,
+        request_type: draft.request_type || null,
         title: draft.title.trim() || draft.description.trim().slice(0, 80),
         description: draft.description.trim(),
         area_scope: draft.location.scope,
@@ -63,6 +64,7 @@ export default function ConfirmStep() {
             <div>
               <div className="text-[11px] font-semibold uppercase text-neutral-500">Kategori</div>
               <div className="text-[18px] font-bold text-neutral-800">{draft.category?.name}</div>
+              <div className="text-[13px] text-neutral-500">{requestTypeLabel(draft.request_type || draft.category?.request_type)}</div>
             </div>
             <button type="button" className="ml-auto text-[13px] font-semibold text-brand-600" onClick={() => nav("/report/category")}>
               Ubah

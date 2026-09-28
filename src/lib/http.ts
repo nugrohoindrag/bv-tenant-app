@@ -12,6 +12,8 @@ export interface Problem {
   detail?: string;
   code: string;
   errors?: { field: string; message: string }[];
+  /** extension member (mis. status akun + alasan + kontak WhatsApp pengelola saat login ditolak, B-08) */
+  meta?: Record<string, unknown>;
   request_id?: string;
 }
 
@@ -35,6 +37,7 @@ export function isApiError(e: unknown): e is ApiError {
 
 export function errorMessage(e: unknown, fallback = "Terjadi kesalahan. Coba lagi."): string {
   if (isApiError(e)) {
+    if (e.code === PASSWORD_CHANGE_REQUIRED) return "Buat password baru terlebih dahulu untuk melanjutkan.";
     if (e.problem.errors?.length) return e.problem.errors.map((x) => x.message).join(", ");
     return e.message || fallback;
   }
@@ -78,6 +81,25 @@ let refreshing: Promise<boolean> | null = null;
 let sessionExpiredHandler: () => void = () => {};
 export function setSessionExpiredHandler(fn: () => void) {
   sessionExpiredHandler = fn;
+}
+
+/**
+ * Password sementara ditegakkan server (P3-ACC-03): selain `GET /me`, `POST /me/password`, `/auth/*`, `GET /tenant/me`, dan
+ * `GET /push/config`, setiap panggilan akun `must_change_password` dijawab 403 `PASSWORD_CHANGE_REQUIRED`. Handler global
+ * (AuthProvider) menandai sesi sehingga RequireAuth mengarahkan ke layar Buat Password Baru.
+ */
+export const PASSWORD_CHANGE_REQUIRED = "PASSWORD_CHANGE_REQUIRED";
+let passwordChangeRequiredHandler: () => void = () => {};
+export function setPasswordChangeRequiredHandler(fn: () => void) {
+  passwordChangeRequiredHandler = fn;
+}
+export function isPasswordChangeRequired(e: unknown): boolean {
+  return isApiError(e) && e.status === 403 && e.code === PASSWORD_CHANGE_REQUIRED;
+}
+/** Teruskan problem dari server (atau adapter mock) ke handler global yang relevan, lalu kembalikan untuk di-throw. */
+export function reportProblem(e: ApiError): ApiError {
+  if (isPasswordChangeRequired(e)) passwordChangeRequiredHandler();
+  return e;
 }
 
 async function refreshToken(): Promise<boolean> {
@@ -159,7 +181,7 @@ export async function http<T = unknown>(path: string, opts: RequestOptions = {})
   }
   if (!res.ok) {
     const p = (json as Problem) || { type: "", title: res.statusText, status: res.status, code: "HTTP_" + res.status };
-    throw new ApiError(p);
+    throw reportProblem(new ApiError(p));
   }
   return json as T;
 }

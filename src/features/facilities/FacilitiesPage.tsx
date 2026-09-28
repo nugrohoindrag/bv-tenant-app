@@ -1,7 +1,6 @@
 // Facilities (PRD P1 v1.3 §3.6 Facility Booking; nav Facilities): daftar fasilitas property + booking saya.
 // Ketersediaan slot & konflik dicegah server (EXCLUDE); persetujuan mengikuti aturan property/fasilitas.
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, ChevronRight, Clock, MapPin, Users } from "lucide-react";
 import { api } from "@/api";
@@ -16,7 +15,9 @@ export const FACILITY_TYPE: Record<string, string> = { meeting_room: "Ruang rapa
 
 export default function FacilitiesPage() {
   const nav = useNavigate();
-  const [tab, setTab] = useState<"facilities" | "bookings">("facilities");
+  const [sp, setSp] = useSearchParams();
+  const tab: "facilities" | "bookings" = sp.get("tab") === "bookings" ? "bookings" : "facilities";
+  const setTab = (t: "facilities" | "bookings") => setSp(t === "bookings" ? { tab: t } : {}, { replace: true });
   const facs = useQuery({ queryKey: ["facilities"], queryFn: () => api().facilities(), staleTime: 60_000 });
   const bookings = useQuery({ queryKey: ["bookings", {}], queryFn: () => api().bookings(), refetchInterval: 30_000, enabled: tab === "bookings" });
 

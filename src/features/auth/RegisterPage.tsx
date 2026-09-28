@@ -1,5 +1,6 @@
 // Registrasi tenant (Figma "Validasi Akun Tenant"): Step 1 Tenant Registration (data diri + email/password + terms),
-// Step 2 Occupancy Registration (apartment/floor/unit/ownership), lalu ke layar Tenant Account Validation.
+// Step 2 Occupancy Registration (apartment/floor/unit/ownership), lalu ke layar Tenant Account Validation. Property yang punya nomor
+// WhatsApp pengelola (`whatsapp_number` dari daftar registrasi) menampilkan "Hubungi pengelola" dan nomornya disimpan untuk layar login.
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -10,7 +11,9 @@ import type { Gender, OwnershipStatus, RegisterInput } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/field";
 import { Cityscape } from "@/components/illustrations";
+import { WhatsAppButton } from "@/components/contact";
 import { errorMessage, isApiError } from "@/lib/http";
+import { rememberManagementContact } from "@/lib/whatsapp";
 import { loadSession, removeSession, saveSession } from "@/lib/storage";
 
 const step1Schema = z.object({
@@ -77,6 +80,7 @@ export default function RegisterPage() {
     window.scrollTo(0, 0);
   }
 
+  const selectedProperty = properties.data?.find((p) => p.id === occ.property_id) ?? null;
   const occValid = useMemo(() => !!occ.property_id && !!occ.floor_id && !!occ.unit_id && !!occ.ownership_status, [occ]);
 
   async function submit(e: FormEvent) {
@@ -88,6 +92,7 @@ export default function RegisterPage() {
       const input: RegisterInput = { ...f, first_name: f.first_name.trim(), last_name: f.last_name.trim(), email: f.email.trim(), phone: f.phone.trim(), property_id: occ.property_id, unit_id: occ.unit_id, ownership_status: occ.ownership_status };
       const res = await api().register(input);
       removeSession(DRAFT_KEY);
+      if (selectedProperty?.whatsapp_number) rememberManagementContact({ whatsapp_number: selectedProperty.whatsapp_number, property_name: selectedProperty.name });
       nav("/register/validation", { state: { userId: res.user_id, email: f.email.trim(), message: res.message }, replace: true });
     } catch (err) {
       if (isApiError(err) && err.problem.errors?.some((x) => ["email", "phone", "first_name", "last_name", "password"].includes(x.field))) {
@@ -182,6 +187,12 @@ export default function RegisterPage() {
             {serverError && (
               <div role="alert" className="rounded-lg bg-critical-soft px-3 py-2 text-sm text-critical-text">
                 {serverError}
+              </div>
+            )}
+            {selectedProperty?.whatsapp_number && (
+              <div className="text-[13px] text-neutral-600">
+                <p className="mb-2">Unit tidak ada di daftar atau butuh bantuan pendaftaran?</p>
+                <WhatsAppButton number={selectedProperty.whatsapp_number} variant="outline" text={`Halo pengelola ${selectedProperty.name}, saya ${`${f.first_name} ${f.last_name}`.trim() || "calon penghuni"} ingin bertanya tentang pendaftaran akun Tenant App.`} />
               </div>
             )}
             <div className="flex-1" />

@@ -1,9 +1,10 @@
 // Bills (PRD P1 v1.3 §23; nav Bills): invoice, periode, jumlah, jatuh tempo, status, riwayat pembayaran. Status pembayaran
 // diverifikasi server lewat callback provider — UI tidak pernah menyimpan kredensial pembayaran.
+// PRD P4 v2.1 §10: saldo deposit & kredit (P4-TNT-06), statement of account (P4-TNT-03).
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Receipt, Wallet } from "lucide-react";
+import { ChevronRight, FileText, PiggyBank, Receipt, Wallet } from "lucide-react";
 import { api } from "@/api";
 import type { Invoice } from "@/api/types";
 import { Page, TabHeader } from "@/components/ui/shell";
@@ -30,6 +31,7 @@ export default function BillsPage() {
   const summary = useQuery({ queryKey: ["bills", "summary"], queryFn: () => api().billSummary() });
   const bills = useQuery({ queryKey: ["bills", "list", tab], queryFn: () => api().bills({ open: tab === "open" }), refetchInterval: 30_000 });
   const payments = useQuery({ queryKey: ["payments", "all"], queryFn: () => api().payments(), enabled: tab === "all" });
+  const balances = useQuery({ queryKey: ["bills", "balances"], queryFn: () => api().balances(), staleTime: 60_000 });
 
   return (
     <Page bottomNav>
@@ -46,6 +48,20 @@ export default function BillsPage() {
             </div>
           )}
         </div>
+        {balances.data && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <BalanceTile label="Deposit" value={balances.data.deposit_balance} hint="Dana jaminan yang tercatat" />
+            <BalanceTile label="Saldo kredit" value={balances.data.credit_balance} hint="Kelebihan bayar / koreksi, dipakai untuk tagihan berikutnya" />
+          </div>
+        )}
+        <button type="button" onClick={() => nav("/bills/statement")} className="tap mt-3 flex w-full items-center gap-3 rounded-xl bg-card p-3.5 text-left shadow-card">
+          <FileText size={20} className="text-brand-600" />
+          <span className="flex-1">
+            <span className="block text-[14px] font-bold">Statement tagihan</span>
+            <span className="block text-[12px] text-neutral-500">Riwayat tagihan, pembayaran & saldo · unduh PDF</span>
+          </span>
+          <ChevronRight size={18} className="text-neutral-400" />
+        </button>
         <div className="mt-4 flex gap-2">
           {(["open", "all"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTab(t)} className={cn("rounded-full px-4 py-1.5 text-[13px] font-semibold", tab === t ? "bg-brand-600 text-white" : "bg-card text-neutral-text shadow-card")}>
@@ -101,5 +117,16 @@ export default function BillsPage() {
         )}
       </div>
     </Page>
+  );
+}
+
+function BalanceTile({ label, value, hint }: { label: string; value: number; hint: string }) {
+  return (
+    <div className="rounded-xl bg-card p-3 shadow-card" title={hint}>
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase text-neutral-500">
+        <PiggyBank size={14} className="text-brand-600" /> {label}
+      </div>
+      <div className="mt-0.5 text-[16px] font-extrabold text-neutral-800">{fmtRupiah(value)}</div>
+    </div>
   );
 }

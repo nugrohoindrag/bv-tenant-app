@@ -1,11 +1,12 @@
 // Detail Ticket (PRD P1 v1.3 §14–§17, WF-P1-002/003): status tenant-facing, tracking timeline dari server, foto (masalah & hasil
 // yang dibagikan), pesan dua arah dengan building management, aksi tenant sesuai allowed_actions: Konfirmasi selesai (→ Closed),
 // Buka kembali (reopen, auditable), Batalkan, dan penilaian (CSAT). Tidak menampilkan WO/Task internal, komentar staf, biaya, atau
-// assignment terbatas (hanya nama team bila diizinkan) — guardrail PRD §20.
+// assignment terbatas (hanya nama team bila diizinkan) — guardrail PRD §20. PRD P3 v2.1 P3-SRQ-05: pesan dapat membawa foto
+// (diunggah ke object SR, dikirim sebagai attachment_ids) dan lampiran ditampilkan di thread.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, CheckCircle2, Clock, MapPin, MessageCircle, RotateCcw, Send, Star, Users, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, Clock, MapPin, MessageCircle, Paperclip, RotateCcw, Send, Star, Users, XCircle } from "lucide-react";
 import { api } from "@/api";
 import { useAuth } from "@/app/auth";
 import type { ServiceRequest, TimelineEvent } from "@/api/types";
@@ -15,8 +16,9 @@ import { Dialog, ErrorState, PhotoStrip, Sheet, Skeleton, StatusBadge } from "@/
 import { Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { CategoryIcon } from "@/components/category-icon";
+import { AttachmentList } from "@/components/attachments";
 import { errorMessage } from "@/lib/http";
-import { contactPreferenceLabel, fmtDateTime, fmtDateTimeComma, fmtRelative } from "@/lib/format";
+import { contactPreferenceLabel, fmtDateTime, fmtDateTimeComma, fmtRelative, requestTypeLabel } from "@/lib/format";
 import { compressImage, useObjectUrls } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +84,7 @@ export default function RequestDetailPage() {
             <div className="flex items-start gap-3">
               <CategoryIcon icon={sr.category_icon ?? sr.category_code} size={48} color="#f5b335" className="shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-semibold uppercase text-neutral-500">{sr.category_name ?? sr.category_code}</div>
+                <div className="text-[11px] font-semibold uppercase text-neutral-500">{sr.category_name ?? sr.category_code} · {requestTypeLabel(sr.request_type)}</div>
                 <div className="text-[17px] font-bold leading-tight text-neutral-800">{sr.title}</div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-2">
                   <StatusBadge status={sr.tenant_status} />
@@ -331,20 +333,35 @@ function FeedbackSheet({ open, onClose, sr, onDone }: { open: boolean; onClose: 
   );
 }
 
+const MAX_MESSAGE_PHOTOS = 3;
+
 function MessagesSheet({ open, onClose, sr, onDone }: { open: boolean; onClose: () => void; sr: ServiceRequest; onDone: () => void }) {
   const toast = useToast();
   const [body, setBody] = useState("");
+  const [photos, setPhotos] = useState<Blob[]>([]);
+  const previews = useObjectUrls(photos);
+  const fileRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const q = useQuery({ queryKey: ["sr-messages", sr.id], queryFn: () => api().messages(sr.id), enabled: open, refetchInterval: open ? 10_000 : false });
   const m = useMutation({
-    mutationFn: () => api().sendMessage(sr.id, body.trim()),
+    // P3-SRQ-05: foto diunggah ke object SR (presign → PUT → confirm) lalu dikirim sebagai attachment_ids; teks boleh kosong
+    // bila ada foto (server menolak hanya bila body dan attachment_ids sama-sama kosong)
+    mutationFn: () => api().sendMessage(sr.id, body.trim(), photos),
     onSuccess: () => {
       setBody("");
+      setPhotos([]);
       q.refetch();
       onDone();
     },
     onError: (e) => toast.error(errorMessage(e)),
   });
+  const addPhotos = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const picked = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const blobs = await Promise.all(picked.slice(0, MAX_MESSAGE_PHOTOS - photos.length).map((f) => compressImage(f)));
+    setPhotos((cur) => [...cur, ...blobs].slice(0, MAX_MESSAGE_PHOTOS));
+    if (fileRef.current) fileRef.current.value = "";
+  };
   useEffect(() => {
     if (open) endRef.current?.scrollIntoView({ block: "end" });
   }, [open, q.data]);
@@ -354,27 +371,50 @@ function MessagesSheet({ open, onClose, sr, onDone }: { open: boolean; onClose: 
       <div className="max-h-[50dvh] space-y-2 overflow-y-auto pb-2">
         {q.isLoading ? (
           <Skeleton className="h-16" />
+        ) : q.error ? (
+          <ErrorState message={errorMessage(q.error)} onRetry={() => q.refetch()} />
         ) : (q.data ?? []).length === 0 ? (
-          <p className="py-6 text-center text-[13px] text-neutral-500">Belum ada pesan. Tulis pertanyaan atau info tambahan untuk building management.</p>
+          <p className="py-6 text-center text-[13px] text-neutral-500">Belum ada pesan. Tulis pertanyaan atau info tambahan untuk building management, bisa dengan foto.</p>
         ) : (
-          (q.data ?? []).map((msg) => (
-            <div key={msg.id} className={cn("flex", msg.author_kind === "tenant" ? "justify-end" : "justify-start")}>
-              <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-[13px]", msg.author_kind === "tenant" ? "rounded-br-sm bg-brand-600 text-white" : "rounded-bl-sm bg-neutral-100 text-neutral-800")}>
-                {msg.author_kind !== "tenant" && <div className="mb-0.5 text-[10px] font-semibold text-brand-700">{msg.author_name ?? "Building Management"}</div>}
-                <div className="whitespace-pre-line">{msg.body}</div>
-                <div className={cn("mt-0.5 text-[10px]", msg.author_kind === "tenant" ? "text-white/70" : "text-neutral-500")}>{fmtRelative(msg.created_at)}</div>
+          (q.data ?? []).map((msg) => {
+            const mine = msg.author_kind === "tenant";
+            const atts = msg.attachments ?? [];
+            // pesan foto saja (body kosong): tanpa baris teks kosong di gelembung
+            const hasText = !!msg.body?.trim();
+            return (
+              <div key={msg.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-[13px]", mine ? "rounded-br-sm bg-brand-600 text-white" : "rounded-bl-sm bg-neutral-100 text-neutral-800")}>
+                  {!mine && <div className="mb-0.5 text-[10px] font-semibold text-brand-700">{msg.author_name ?? "Building Management"}</div>}
+                  {hasText && <div className="whitespace-pre-line">{msg.body}</div>}
+                  {atts.length > 0 ? (
+                    <AttachmentList items={atts} size={112} light={mine} className={hasText || !mine ? "mt-1.5" : undefined} />
+                  ) : msg.attachment_ids.length > 0 ? (
+                    <div className={cn("mt-1 flex items-center gap-1 text-[11px]", mine ? "text-white/80" : "text-neutral-500")}>
+                      <Paperclip size={12} /> {msg.attachment_ids.length} lampiran
+                    </div>
+                  ) : null}
+                  <div className={cn("mt-0.5 text-[10px]", mine ? "text-white/70" : "text-neutral-500")}>{fmtRelative(msg.created_at)}</div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={endRef} />
       </div>
       {canSend ? (
-        <div className="mt-2 flex items-end gap-2 border-t border-border pt-3">
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2} placeholder="Tulis pesan…" className="flex-1 resize-none rounded-xl border border-neutral-300 px-3 py-2 text-[14px] outline-none focus:border-brand-500" />
-          <Button size="sm" className="h-10 w-10 !px-0" aria-label="Kirim" disabled={!body.trim()} loading={m.isPending} onClick={() => m.mutate()}>
-            <Send size={16} />
-          </Button>
+        <div className="mt-2 border-t border-border pt-3">
+          {photos.length > 0 && <PhotoStrip photos={photos.map((_, i) => ({ id: String(i), url: previews[i] ?? "" }))} size={72} onRemove={(id) => setPhotos(photos.filter((_, i) => String(i) !== id))} className="mb-2" />}
+          <div className="flex items-end gap-2">
+            <button type="button" aria-label="Lampirkan foto" disabled={photos.length >= MAX_MESSAGE_PHOTOS || m.isPending} onClick={() => fileRef.current?.click()} className="tap flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 disabled:opacity-40">
+              <Camera size={18} />
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => addPhotos(e.target.files)} />
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2} placeholder={photos.length ? "Tambahkan keterangan (opsional)…" : "Tulis pesan…"} className="flex-1 resize-none rounded-xl border border-neutral-300 px-3 py-2 text-[14px] outline-none focus:border-brand-500" />
+            <Button size="sm" className="h-10 w-10 !px-0" aria-label="Kirim" disabled={!body.trim() && photos.length === 0} loading={m.isPending} onClick={() => m.mutate()}>
+              {!m.isPending && <Send size={16} />}
+            </Button>
+          </div>
+          {m.isPending && photos.length > 0 && <p className="mt-1 text-[11px] text-neutral-500">Mengunggah {photos.length} foto…</p>}
         </div>
       ) : (
         <p className="mt-2 border-t border-border pt-3 text-center text-[12px] text-neutral-500">Ticket sudah ditutup; pesan tidak dapat dikirim.</p>
